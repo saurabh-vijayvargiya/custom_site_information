@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function custom_site_information_menu() {
+
+  // Creating items arrray for menu
+  $items['page_json/%/%'] = array(
+      'page callback' => 'custom_site_information_node_json',
+      'page arguments' => array(1, 2),
+      'access arguments' => array('access content'),
+    );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function custom_site_information_form_alter(&$form, &$form_state, $form_id) {
+  // Altering form with $form_id = system_site_information_settings
+  if( $form_id == 'system_site_information_settings' ) {
+    $form['site_api_key'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Site Api Key'),
+        '#default_value' => variable_get('siteapikey', 'No API Key yet'),
+      );
+
+    // Changing save button text to Update Configuration
+    $form['actions']['submit']['#value'] = t('Update Configuration');
+    
+    // Adding extra submit form handle
+    $form['#submit'][] = 'custom_site_information_form_submit';
+  }
+}
+
+/**
+ * This function is to handle the altered system_site_information_settings
+ *
+ * @param      array  $form        The form array provided by drupal form api
+ * @param      array  $form_state  The form_state array provided by drupal form api
+ */
+function custom_site_information_form_submit(&$form, &$form_state) {
+  
+  // Getting value from site information form
+  $value = $form_state['values']['site_api_key'];
+  if(isset($value) && !empty($value)) {
+    
+    // Saving as system variable
+    variable_set('siteapikey', $value);
+
+    // Showing saved message to users
+    drupal_set_message(t('Site API Key has been saved with '.$value.' value'));
+  }
+}
+
+/**
+ * page callback function for page_json menu
+ *
+ * @param      string  $arg1   siteapikey system variable
+ * @param      int  $arg2   Node id
+ *
+ */
+function custom_site_information_node_json($arg1, $arg2) {
+  
+  // getting node object by using node id
+  $node = isset($arg2) ? node_load($arg2) : null;
+  if(isset($arg1) && $arg1 == variable_get('siteapikey') && isset($node) && $node->type == 'page') {
+
+    // returning encode json
+    return drupal_json_encode($node);
+  }
+  else
+    return t('Access Denied');
+}

@@ -1,0 +1,4 @@
+name = Custom site information
+description = This module provides new textfield in site information for adding site api key.
+package = Custom
+core = 7.x
